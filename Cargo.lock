@@ -114,6 +114,7 @@ checksum = "327762f6e5a765692301e5bb513e0d9fef63be86bbc14528052b1cd3e6f03e07"
 [[package]]
 name = "bleps"
 version = "0.1.0"
+source = "git+https://github.com/bjoernQ/bleps.git?rev=6d9f2e7e726cb389334eb500a086fd2129069abc#6d9f2e7e726cb389334eb500a086fd2129069abc"
 dependencies = [
  "aes",
  "bitfield",
@@ -132,6 +133,7 @@ dependencies = [
 [[package]]
 name = "bleps-dedup"
 version = "0.1.0"
+source = "git+https://github.com/bjoernQ/bleps.git?rev=6d9f2e7e726cb389334eb500a086fd2129069abc#6d9f2e7e726cb389334eb500a086fd2129069abc"
 dependencies = [
  "darling",
  "proc-macro-error",
@@ -143,6 +145,7 @@ dependencies = [
 [[package]]
 name = "bleps-macros"
 version = "0.1.0"
+source = "git+https://github.com/bjoernQ/bleps.git?rev=6d9f2e7e726cb389334eb500a086fd2129069abc#6d9f2e7e726cb389334eb500a086fd2129069abc"
 dependencies = [
  "litrs 0.2.3",
  "proc-macro2",
@@ -732,12 +735,14 @@ dependencies = [
  "bleps",
  "embassy-executor",
  "embassy-sync 0.4.0",
+ "embassy-time",
  "embedded-hal-async",
  "esp-backtrace",
  "esp-println",
  "esp-wifi",
  "esp32c3-hal",
  "rand_core",
+ "static_cell",
 ]
 
 [[package]]
@@ -1414,6 +1419,15 @@ name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+
+[[package]]
+name = "static_cell"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "49cd323fc21eb534f903ee78d781d622099f9716c5b408ed23bcf39f8f1651c0"
+dependencies = [
+ "atomic-polyfill",
+]
 
 [[package]]
 name = "strsim"

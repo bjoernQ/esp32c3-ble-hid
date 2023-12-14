@@ -3,8 +3,6 @@
 #![feature(type_alias_impl_trait)]
 #![feature(async_closure)]
 
-use core::cell::RefCell;
-
 use bleps::{
     ad_structure::{
         create_advertising_data, AdStructure, BR_EDR_NOT_SUPPORTED, LE_GENERAL_DISCOVERABLE,
@@ -15,14 +13,26 @@ use bleps::{
     gatt, Addr,
 };
 use embassy_executor::Spawner;
+use embassy_sync::{
+    blocking_mutex::raw::NoopRawMutex,
+    channel::{Channel, Sender},
+};
+use embassy_time::{Duration, Timer};
 use embedded_hal_async::digital::Wait;
 use esp_backtrace as _;
 use esp_println::println;
 use esp_wifi::{ble::controller::asynch::BleConnector, initialize, EspWifiInitFor};
 use hal::{
-    clock::ClockControl, embassy, macros::main, peripherals::*, prelude::*, timer::TimerGroup, Rng,
-    IO,
+    clock::ClockControl,
+    embassy,
+    gpio::{GpioPin, Input, PullDown},
+    macros::main,
+    peripherals::*,
+    prelude::*,
+    timer::TimerGroup,
+    Rng, IO,
 };
+use static_cell::make_static;
 
 const REPORT_MAP: [u8; 65] = [
     0x05, 0x01, // USAGE_PAGE (Generic Desktop)
@@ -84,7 +94,7 @@ impl KeyboardReport {
 }
 
 #[main]
-async fn main(_spawner: Spawner) -> ! {
+async fn main(spawner: Spawner) -> ! {
     esp_println::logger::init_logger_from_env();
 
     let peripherals = Peripherals::take();
@@ -118,6 +128,14 @@ async fn main(_spawner: Spawner) -> ! {
     let timer_group0 = TimerGroup::new(peripherals.TIMG0, &clocks);
     embassy::init(&clocks, timer_group0.timer0);
 
+    let channel: Channel<NoopRawMutex, u8, 3> = Channel::new();
+    let channel = make_static!(channel);
+
+    let receiver = channel.receiver();
+    let sender = channel.sender();
+
+    spawner.spawn(key_reader(button, sender)).ok();
+
     let mut bluetooth = peripherals.BT;
 
     let connector = BleConnector::new(&init, &mut bluetooth);
@@ -125,7 +143,6 @@ async fn main(_spawner: Spawner) -> ! {
     println!("Connector created");
 
     let mut ltk = None;
-    let pin_ref = RefCell::new(button);
 
     loop {
         println!("{:?}", ble.init().await);
@@ -192,7 +209,7 @@ async fn main(_spawner: Spawner) -> ! {
         };
 
         let mut write_protocol_mode = |offset: usize, data: &[u8]| {
-            println!("RECEIVED: Offset {}, data {:?}", offset, data);
+            println!("write_protocol_mode: Offset {}, data {:?}", offset, data);
         };
 
         let mut read_device_info = |_offset: usize, data: &mut [u8]| {
@@ -266,12 +283,14 @@ async fn main(_spawner: Spawner) -> ! {
         );
 
         let mut notifier = async || {
-            pin_ref.borrow_mut().wait_for_rising_edge().await.unwrap();
+            let received = receiver.receive().await;
+            println!("send");
+
             let resp = KeyboardReport {
                 report_id: 1,
                 modifiers: 0,
                 reserved: 0,
-                key_codes: [b'x', 0, 0, 0, 0, 0],
+                key_codes: [received, 0, 0, 0, 0, 0],
             };
 
             NotificationData::new(hid_report_handle, &resp.to_bytes())
@@ -281,6 +300,36 @@ async fn main(_spawner: Spawner) -> ! {
 
         // TODO persist the LTK
         ltk = srv.get_ltk();
+    }
+}
+
+#[embassy_executor::task]
+async fn key_reader(
+    mut button: GpioPin<Input<PullDown>, 9>,
+    sender: Sender<'static, NoopRawMutex, u8, 3>,
+) {
+    loop {
+        button.wait_for_rising_edge().await.ok();
+
+        sender.send(0x08).await; // 'e'
+        Timer::after(Duration::from_millis(200)).await;
+        sender.send(0x0).await;
+
+        sender.send(0x16).await; // 's'
+        Timer::after(Duration::from_millis(200)).await;
+        sender.send(0x0).await;
+
+        sender.send(0x13).await; // 'p'
+        Timer::after(Duration::from_millis(200)).await;
+        sender.send(0x0).await;
+
+        sender.send(0x20).await; // '3'
+        Timer::after(Duration::from_millis(200)).await;
+        sender.send(0x0).await;
+
+        sender.send(0x1f).await; // '2'
+        Timer::after(Duration::from_millis(200)).await;
+        sender.send(0x0).await;
     }
 }
 
