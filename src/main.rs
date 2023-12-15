@@ -156,7 +156,7 @@ async fn main(spawner: Spawner) -> ! {
                         ty: 0x03,
                         data: &[0x12, 0x18]
                     }, // HID
-                    AdStructure::CompleteLocalName("Example"),
+                    AdStructure::CompleteLocalName("ESP32-C3"),
                     AdStructure::Unknown {
                         ty: 0x19,
                         data: &[0xc1, 0x03]
@@ -179,7 +179,6 @@ async fn main(spawner: Spawner) -> ! {
             if off < val.len() {
                 let len = data.len().min(val.len() - off);
                 data[..len].copy_from_slice(&val[off..off + len]);
-                println!("SEND: Offset {}, data {:x?}", offset, &data[..len]);
                 len
             } else {
                 0
@@ -284,8 +283,8 @@ async fn main(spawner: Spawner) -> ! {
 
         let mut notifier = async || {
             let received = receiver.receive().await;
-            println!("send");
 
+            println!("notify hid report");
             let resp = KeyboardReport {
                 report_id: 1,
                 modifiers: 0,

@@ -114,7 +114,7 @@ checksum = "327762f6e5a765692301e5bb513e0d9fef63be86bbc14528052b1cd3e6f03e07"
 [[package]]
 name = "bleps"
 version = "0.1.0"
-source = "git+https://github.com/bjoernQ/bleps.git?rev=6d9f2e7e726cb389334eb500a086fd2129069abc#6d9f2e7e726cb389334eb500a086fd2129069abc"
+source = "git+https://github.com/bjoernQ/bleps.git?rev=80fe4b26d3789f5bdfc8ab47e78455b8ca49be54#80fe4b26d3789f5bdfc8ab47e78455b8ca49be54"
 dependencies = [
  "aes",
  "bitfield",
@@ -133,7 +133,7 @@ dependencies = [
 [[package]]
 name = "bleps-dedup"
 version = "0.1.0"
-source = "git+https://github.com/bjoernQ/bleps.git?rev=6d9f2e7e726cb389334eb500a086fd2129069abc#6d9f2e7e726cb389334eb500a086fd2129069abc"
+source = "git+https://github.com/bjoernQ/bleps.git?rev=80fe4b26d3789f5bdfc8ab47e78455b8ca49be54#80fe4b26d3789f5bdfc8ab47e78455b8ca49be54"
 dependencies = [
  "darling",
  "proc-macro-error",
@@ -145,7 +145,7 @@ dependencies = [
 [[package]]
 name = "bleps-macros"
 version = "0.1.0"
-source = "git+https://github.com/bjoernQ/bleps.git?rev=6d9f2e7e726cb389334eb500a086fd2129069abc#6d9f2e7e726cb389334eb500a086fd2129069abc"
+source = "git+https://github.com/bjoernQ/bleps.git?rev=80fe4b26d3789f5bdfc8ab47e78455b8ca49be54#80fe4b26d3789f5bdfc8ab47e78455b8ca49be54"
 dependencies = [
  "litrs 0.2.3",
  "proc-macro2",
@@ -198,9 +198,9 @@ dependencies = [
 
 [[package]]
 name = "const-oid"
-version = "0.9.5"
+version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28c122c3980598d243d63d9a704629a2d748d101f278052ff068be5a4423ab6f"
+checksum = "c2459377285ad874054d797f3ccebf984978aa39129f6eafde5cdc8315b612f8"
 
 [[package]]
 name = "core-isa-parser"
