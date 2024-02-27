@@ -126,7 +126,7 @@ async fn main(spawner: Spawner) -> ! {
     .unwrap();
 
     let timer_group0 = TimerGroup::new(peripherals.TIMG0, &clocks);
-    embassy::init(&clocks, timer_group0.timer0);
+    embassy::init(&clocks, timer_group0);
 
     let channel: Channel<NoopRawMutex, u8, 3> = Channel::new();
     let channel = make_static!(channel);
@@ -291,7 +291,7 @@ async fn main(spawner: Spawner) -> ! {
             &mut rng_wrap,
         );
 
-        let mut notifier = async || {
+        let mut notifier = || async {
             let received = receiver.receive().await;
 
             println!("notify hid report");
