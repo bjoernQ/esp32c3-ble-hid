@@ -126,7 +126,7 @@ async fn main(spawner: Spawner) -> ! {
     .unwrap();
 
     let timer_group0 = TimerGroup::new(peripherals.TIMG0, &clocks);
-    embassy::init(&clocks, timer_group0.timer0);
+    embassy::init(&clocks, timer_group0);
 
     let channel: Channel<NoopRawMutex, u8, 3> = Channel::new();
     let channel = make_static!(channel);
@@ -170,6 +170,11 @@ async fn main(spawner: Spawner) -> ! {
         let local_addr = Addr::from_le_bytes(false, ble.cmd_read_br_addr().await.unwrap());
 
         println!("started advertising");
+
+        let mut read_hid_information = |_offset: usize, data: &mut [u8]| {
+            data[..4].copy_from_slice(&[0x01, 0x11, 0x00, 0x02]);
+            4
+        };
 
         let mut read_hid_report_map = |offset: usize, data: &mut [u8]| {
             println!("read hid report map {offset} {}", data.len());
@@ -226,6 +231,11 @@ async fn main(spawner: Spawner) -> ! {
             service {
                 uuid: "00001812-0000-1000-8000-00805f9b34fb",
                 characteristics: [
+                    // BLE HID_information
+                    characteristic {
+                        uuid: "00002a4a-0000-1000-8000-00805f9b34fb",
+                        read: read_hid_information,
+                    },
                     // BLE HID Report Map characteristic
                     characteristic {
                         uuid: "00002a4b-0000-1000-8000-00805f9b34fb",
@@ -281,7 +291,7 @@ async fn main(spawner: Spawner) -> ! {
             &mut rng_wrap,
         );
 
-        let mut notifier = async || {
+        let mut notifier = || async {
             let received = receiver.receive().await;
 
             println!("notify hid report");
