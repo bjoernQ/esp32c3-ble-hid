@@ -6,26 +6,27 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-hal = { package = "esp32c3-hal", version = "0.15.0", features = [
+hal = { package = "esp-hal", version = "0.16.0", features = [
+    "esp32c3",
     "embassy",
     "embassy-time-timg0",
     "embassy-executor-thread",
 ] }
-esp-backtrace = { version = "0.11.0", features = [
+esp-backtrace = { version = "0.11.1", features = [
     "esp32c3",
     "panic-handler",
     "exception-handler",
     "println",
 ] }
-esp-println = { version = "0.9.0", features = ["esp32c3", "log", "uart"] }
-esp-wifi = { version = "0.3.0", features = ["esp32c3", "ble", "async"] }
+esp-println = { version = "0.9.1", features = ["esp32c3", "log", "uart"] }
+esp-wifi = { version = "0.4.0", features = ["esp32c3", "ble", "async"] }
 embassy-executor = { version = "0.5.0", features = [
     "nightly",
     "integrated-timers",
     "arch-riscv32",
 ] }
 embassy-sync = { version = "0.5.0" }
-bleps = { git = "https://github.com/bjoernQ/bleps.git", rev = "9371d7d4d510ba5c936c1eef96674f8fd4f63e8a", package = "bleps", features = [
+bleps = { git = "https://github.com/bjoernQ/bleps.git", rev = "1e35e76352dc37459bdf97d3dd266ca88741207e", package = "bleps", features = [
     "macros",
     "async",
     "crypto",
