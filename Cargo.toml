@@ -19,7 +19,7 @@ esp-backtrace = { version = "0.11.1", features = [
     "println",
 ] }
 esp-println = { version = "0.9.1", features = ["esp32c3", "log", "uart"] }
-esp-wifi = { version = "0.4.0", features = ["esp32c3", "ble", "async"] }
+esp-wifi = { version = "0.4.0", features = ["esp32c3", "ble", "async", "dump-packets"] }
 embassy-executor = { version = "0.5.0", features = [
     "nightly",
     "integrated-timers",
