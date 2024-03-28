@@ -34,53 +34,96 @@ use hal::{
 };
 use static_cell::make_static;
 
-const REPORT_MAP: [u8; 65] = [
-    0x05, 0x01, // USAGE_PAGE (Generic Desktop)
-    0x09, 0x06, // USAGE (Keyboard)
-    0xa1, 0x01, // COLLECTION (Application)
-    0x85, 0x01, //   REPORT_ID (1)
-    0x05, 0x07, //   USAGE_PAGE (Keyboard)
-    0x19, 0x01, //   USAGE_MINIMUM
-    0x29, 0x7f, //   USAGE_MAXIMUM
-    0x15, 0x00, //   LOGICAL_MINIMUM (0)
-    0x25, 0x01, //   LOGICAL_MAXIMUM (1)
-    0x75, 0x01, //   REPORT_SIZE (1)
-    0x95, 0x08, //   REPORT_COUNT (8)
-    0x81, 0x02, //   INPUT (Data,Var,Abs)
-    0x95, 0x01, //   REPORT_COUNT (1)
-    0x75, 0x08, //   REPORT_SIZE (8)
-    0x81, 0x01, //   INPUT (Cnst,Ary,Abs)
-    0x95, 0x05, //   REPORT_COUNT (5)
-    0x75, 0x01, //   REPORT_SIZE (1)
-    0x05, 0x08, //   USAGE_PAGE (LEDs)
-    0x19, 0x01, //   USAGE_MINIMUM (Num Lock)
-    0x29, 0x05, //   USAGE_MAXIMUM (Kana)
-    0x91, 0x02, //   OUTPUT (Data,Var,Abs)
-    0x95, 0x01, //   REPORT_COUNT (1)
-    0x75, 0x03, //   REPORT_SIZE (3)
-    0x91, 0x01, //   OUTPUT (Cnst,Ary,Abs)
-    0x95, 0x06, //   REPORT_COUNT (6)
-    0x75, 0x08, //   REPORT_SIZE (8)
-    0x15, 0x00, //   LOGICAL_MINIMUM (0)
-    0x25, 0x65, //   LOGICAL_MAXIMUM (101)
-    0x05, 0x07, //   USAGE_PAGE (Keyboard)
-    0x19, 0x00, //   USAGE_MINIMUM (Reserved (no event indicated))
-    0x29, 0x65, //   USAGE_MAXIMUM (Keyboard Application)
-    0x81, 0x00, //   INPUT (Data,Ary,Abs)
-    0xc0, // END_COLLECTION
-];
+macro_rules! count {
+	() => { 0u8 };
+	($x:tt $($xs:tt)*) => {1u8 + count!($($xs)*)};
+}
+
+macro_rules! hid {
+	($(( $($xs:tt),*)),+ $(,)?) => { &[ $( (count!($($xs)*)-1) | $($xs),* ),* ] };
+}
+
+// Main items
+pub const HIDINPUT: u8 = 0x80;
+pub const HIDOUTPUT: u8 = 0x90;
+pub const FEATURE: u8 = 0xb0;
+pub const COLLECTION: u8 = 0xa0;
+pub const END_COLLECTION: u8 = 0xc0;
+
+// Global items
+pub const USAGE_PAGE: u8 = 0x04;
+pub const LOGICAL_MINIMUM: u8 = 0x14;
+pub const LOGICAL_MAXIMUM: u8 = 0x24;
+pub const PHYSICAL_MINIMUM: u8 = 0x34;
+pub const PHYSICAL_MAXIMUM: u8 = 0x44;
+pub const UNIT_EXPONENT: u8 = 0x54;
+pub const UNIT: u8 = 0x64;
+pub const REPORT_SIZE: u8 = 0x74; //bits
+pub const REPORT_ID: u8 = 0x84;
+pub const REPORT_COUNT: u8 = 0x94; //bytes
+pub const PUSH: u8 = 0xa4;
+pub const POP: u8 = 0xb4;
+
+// Local items
+pub const USAGE: u8 = 0x08;
+pub const USAGE_MINIMUM: u8 = 0x18;
+pub const USAGE_MAXIMUM: u8 = 0x28;
+pub const DESIGNATOR_INDEX: u8 = 0x38;
+pub const DESIGNATOR_MINIMUM: u8 = 0x48;
+pub const DESIGNATOR_MAXIMUM: u8 = 0x58;
+pub const STRING_INDEX: u8 = 0x78;
+pub const STRING_MINIMUM: u8 = 0x88;
+pub const STRING_MAXIMUM: u8 = 0x98;
+pub const DELIMITER: u8 = 0xa8;
+
+const KEYBOARD_ID: u8 = 0x01;
+
+const REPORT_MAP: &[u8] = hid!(
+    (USAGE_PAGE, 0x01), // USAGE_PAGE (Generic Desktop Ctrls)
+    (USAGE, 0x06),      // USAGE (Keyboard)
+    (COLLECTION, 0x01), // COLLECTION (Application)
+    // ------------------------------------------------- Keyboard
+    (REPORT_ID, KEYBOARD_ID), //   REPORT_ID (1)
+    (USAGE_PAGE, 0x07),       //   USAGE_PAGE (Kbrd/Keypad)
+    (USAGE_MINIMUM, 0xE0),    //   USAGE_MINIMUM (0xE0)
+    (USAGE_MAXIMUM, 0xE7),    //   USAGE_MAXIMUM (0xE7)
+    (LOGICAL_MINIMUM, 0x00),  //   LOGICAL_MINIMUM (0)
+    (LOGICAL_MAXIMUM, 0x01),  //   Logical Maximum (1)
+    (REPORT_SIZE, 0x01),      //   REPORT_SIZE (1)
+    (REPORT_COUNT, 0x08),     //   REPORT_COUNT (8)
+    (HIDINPUT, 0x02), //   INPUT (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    (REPORT_COUNT, 0x01), //   REPORT_COUNT (1) ; 1 byte (Reserved)
+    (REPORT_SIZE, 0x08), //   REPORT_SIZE (8)
+    (HIDINPUT, 0x01), //   INPUT (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    (REPORT_COUNT, 0x05), //   REPORT_COUNT (5) ; 5 bits (Num lock, Caps lock, Scroll lock, Compose, Kana)
+    (REPORT_SIZE, 0x01),  //   REPORT_SIZE (1)
+    (USAGE_PAGE, 0x08),   //   USAGE_PAGE (LEDs)
+    (USAGE_MINIMUM, 0x01), //   USAGE_MINIMUM (0x01) ; Num Lock
+    (USAGE_MAXIMUM, 0x05), //   USAGE_MAXIMUM (0x05) ; Kana
+    (HIDOUTPUT, 0x02), //   OUTPUT (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+    (REPORT_COUNT, 0x01), //   REPORT_COUNT (1) ; 3 bits (Padding)
+    (REPORT_SIZE, 0x03), //   REPORT_SIZE (3)
+    (HIDOUTPUT, 0x01), //   OUTPUT (Const,Array,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+    (REPORT_COUNT, 0x06), //   REPORT_COUNT (6) ; 6 bytes (Keys)
+    (REPORT_SIZE, 0x08), //   REPORT_SIZE(8)
+    (LOGICAL_MINIMUM, 0x00), //   LOGICAL_MINIMUM(0)
+    (LOGICAL_MAXIMUM, 0x65), //   LOGICAL_MAXIMUM(0x65) ; 101 keys
+    (USAGE_PAGE, 0x07), //   USAGE_PAGE (Kbrd/Keypad)
+    (USAGE_MINIMUM, 0x00), //   USAGE_MINIMUM (0)
+    (USAGE_MAXIMUM, 0x65), //   USAGE_MAXIMUM (0x65)
+    (HIDINPUT, 0x00),  //   INPUT (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    (END_COLLECTION),  // END_COLLECTION
+);
 
 struct KeyboardReport {
-    report_id: u8,
     modifiers: u8,
     reserved: u8,
     key_codes: [u8; 6],
 }
 
 impl KeyboardReport {
-    fn to_bytes(&self) -> [u8; 9] {
+    fn to_bytes(&self) -> [u8; 8] {
         [
-            self.report_id,
             self.modifiers,
             self.reserved,
             self.key_codes[0],
@@ -172,7 +215,7 @@ async fn main(spawner: Spawner) -> ! {
         println!("started advertising");
 
         let mut read_hid_information = |_offset: usize, data: &mut [u8]| {
-            data[..4].copy_from_slice(&[0x01, 0x11, 0x00, 0x02]);
+            data[..4].copy_from_slice(&[0x11, 0x1, 0x00, 0x01]);
             4
         };
 
@@ -197,19 +240,18 @@ async fn main(spawner: Spawner) -> ! {
         let mut read_hid_report = |_offset: usize, data: &mut [u8]| {
             println!("read hid report");
             let resp = KeyboardReport {
-                report_id: 0,
                 modifiers: 0,
                 reserved: 0,
                 key_codes: [0u8; 6],
             };
 
-            data[..9].copy_from_slice(&resp.to_bytes());
-            9
+            data[..8].copy_from_slice(&resp.to_bytes());
+            8
         };
 
         let mut read_protocol_mode = |_offset: usize, data: &mut [u8]| {
-            data[..2].copy_from_slice(&[0x00, 0x00]);
-            2
+            data[..1].copy_from_slice(&[0x01]);
+            1
         };
 
         let mut write_protocol_mode = |offset: usize, data: &[u8]| {
@@ -225,6 +267,8 @@ async fn main(spawner: Spawner) -> ! {
             data[..1].copy_from_slice(&[100]);
             1
         };
+
+        let desc_value = &[KEYBOARD_ID, 1];
 
         gatt!([
             // BLE HID Service
@@ -252,6 +296,10 @@ async fn main(spawner: Spawner) -> ! {
                         name: "hid_report",
                         notify: true,
                         read: read_hid_report,
+                        descriptors: [descriptor {
+                            uuid: "2908",
+                            value: desc_value,
+                        },],
                     },
                     // BLE HID protocol mode characteristic
                     characteristic {
@@ -279,6 +327,7 @@ async fn main(spawner: Spawner) -> ! {
                 characteristics: [characteristic {
                     uuid: "00002a19-0000-1000-8000-00805f9b34fb",
                     read: read_battery_level,
+                    notify: true,
                 },],
             },
         ]);
@@ -296,7 +345,6 @@ async fn main(spawner: Spawner) -> ! {
 
             println!("notify hid report");
             let resp = KeyboardReport {
-                report_id: 1,
                 modifiers: 0,
                 reserved: 0,
                 key_codes: [received, 0, 0, 0, 0, 0],
